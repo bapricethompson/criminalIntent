@@ -107,7 +107,11 @@ export default function HomeScreen() {
         renderItem={({ item }) => (
           <Link href={`../crimeDetail?crimeId=${item.id}`} asChild>
             <Pressable>
-              <ListItem title={item.title} date={item.date} />
+              <ListItem
+                title={item.title}
+                date={item.date}
+                solved={item.solved}
+              />
             </Pressable>
           </Link>
         )}

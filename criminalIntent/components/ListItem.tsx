@@ -3,12 +3,12 @@ import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 
-export default function ListItem({ title, date }) {
+export default function ListItem({ title, date, solved }) {
   return (
     <View style={styles.card}>
       <View style={styles.cardFlex}>
         <Text style={styles.textBold}>{title}</Text>
-        <MaterialIcons name="local-police" size={28} />
+        {solved && <MaterialIcons name="local-police" size={28} />}
       </View>
       <Text style={styles.text}>{date}</Text>
     </View>
