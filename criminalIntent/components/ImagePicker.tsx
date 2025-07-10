@@ -49,7 +49,7 @@ export default function ImagePickerView({ image, setImage, title, setTitle }) {
         <IconButton onPress={pickImage} />
       </View>
       <View style={styles.textDiv}>
-        <Text style={styles.titleText}>{title}</Text>
+        <Text style={styles.titleText}>{title ? title : "Title"}</Text>
         <TextInput
           style={styles.input}
           placeholder="Title"

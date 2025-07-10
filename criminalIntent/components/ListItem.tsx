@@ -10,7 +10,7 @@ export default function ListItem({ title, date, solved }) {
         <Text style={styles.textBold}>{title}</Text>
         {solved && <MaterialIcons name="local-police" size={28} />}
       </View>
-      <Text style={styles.text}>{date}</Text>
+      <Text style={styles.text}>{new Date(date).toLocaleDateString()}</Text>
     </View>
   );
 }
