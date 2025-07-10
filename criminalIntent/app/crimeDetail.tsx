@@ -1,22 +1,36 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, StyleSheet, TextInput, Pressable } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TextInput,
+  Pressable,
+  Platform,
+} from "react-native";
+import DateTimePicker from "@react-native-community/datetimepicker";
 import ImagePickerView from "../components/ImagePicker";
 import StyledButton from "../components/GeneralButton";
+import { Checkbox } from "react-native-paper";
 
 export default function crimeDetails() {
   const [value, setValue] = useState("");
   const [date, setDate] = useState(new Date());
   const [showPicker, setShowPicker] = useState(false);
+  const [checked, setChecked] = useState(false);
 
   const saveCrime = async () => {
     console.log("SAVE");
   };
 
   const onChange = (event, selectedDate) => {
-    setShowPicker(Platform.OS === "ios"); // iOS keeps picker open
+    setShowPicker(false);
     if (selectedDate) {
       setDate(selectedDate);
     }
+  };
+
+  const toggleCheckbox = () => {
+    setChecked(!checked);
   };
 
   return (
@@ -37,6 +51,23 @@ export default function crimeDetails() {
         title={`Pick a date: ${date.toLocaleDateString()}`}
         onPress={() => setShowPicker(true)}
       />
+      {showPicker && (
+        <DateTimePicker
+          value={date}
+          mode="date"
+          display={Platform.OS === "ios" ? "spinner" : "default"}
+          onChange={onChange}
+        />
+      )}
+      <View style={styles.checkboxContainer}>
+        <Text style={styles.checkboxLabel}>Solved</Text>
+        <Checkbox
+          status={checked ? "checked" : "unchecked"}
+          onPress={toggleCheckbox}
+          color="purple"
+          uncheckedColor="#999"
+        />
+      </View>
       <StyledButton title={"Save"} onPress={saveCrime} />
     </View>
   );
@@ -74,5 +105,15 @@ const styles = StyleSheet.create({
     color: "white",
     fontWeight: "bold",
     fontSize: 16,
+  },
+  checkboxContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 16,
+    marginLeft: 26,
+  },
+  checkboxLabel: {
+    fontSize: 18,
+    marginRight: 8,
   },
 });
