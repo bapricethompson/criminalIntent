@@ -2,6 +2,7 @@ import React from "react";
 import { Pressable, Text, StyleSheet } from "react-native";
 
 export default function StyledButton({ onPress, title = "Save" }) {
+  console.log("im pressed");
   return (
     <Pressable
       style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}

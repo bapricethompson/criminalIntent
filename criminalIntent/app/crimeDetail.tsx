@@ -8,43 +8,80 @@ import {
   Platform,
 } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
+import { useLocalSearchParams } from "expo-router";
 import ImagePickerView from "../components/ImagePicker";
 import StyledButton from "../components/GeneralButton";
 import { Checkbox } from "react-native-paper";
+import uuid from "react-native-uuid";
+import { loadData, saveData, loadItemById } from "../hooks/useStorage";
+import { useRouter } from "expo-router";
 
-export default function crimeDetails() {
-  const [value, setValue] = useState("");
+export default function CrimeDetails() {
+  const params = useLocalSearchParams();
+  const crimeId = params.crimeId;
+  const [title, setTitle] = useState("");
+  const [imageUri, setImageUri] = useState(null);
+  const [description, setDescription] = useState("");
   const [date, setDate] = useState(new Date());
   const [showPicker, setShowPicker] = useState(false);
   const [checked, setChecked] = useState(false);
+  const router = useRouter();
 
   const saveCrime = async () => {
-    console.log("SAVE");
+    const newCrime = {
+      id: uuid.v4(),
+      title,
+      date: date.toISOString(), // store as ISO string
+      description,
+      solved: checked,
+      image: imageUri || null,
+    };
+    console.log(newCrime);
+    const existingCrimes = (await loadData("crimes")) || [];
+    console.log(existingCrimes);
+    const updatedCrimes = [...existingCrimes, newCrime];
+    console.log(updatedCrimes);
+    await saveData("crimes", updatedCrimes);
+    router.replace("/"); // or router.back() if you're pushing from index
   };
+
+  useEffect(() => {
+    const loadCrime = async () => {
+      const crime = await loadItemById("crimes", crimeId);
+      if (crime) {
+        setTitle(crime.title || "");
+        setImageUri(crime.image || null);
+        setDescription(crime.description || "");
+        setDate(new Date(crime.date));
+        setChecked(crime.solved || false);
+      }
+    };
+
+    loadCrime();
+  }, [crimeId]);
 
   const onChange = (event, selectedDate) => {
     setShowPicker(false);
-    if (selectedDate) {
-      setDate(selectedDate);
-    }
-  };
-
-  const toggleCheckbox = () => {
-    setChecked(!checked);
+    if (selectedDate) setDate(selectedDate);
   };
 
   return (
     <View>
-      <ImagePickerView />
+      <ImagePickerView
+        image={imageUri}
+        setImage={setImageUri}
+        title={title}
+        setTitle={setTitle}
+      />
       <View style={styles.detailsDiv}>
         <Text style={styles.detailsTitle}>Details</Text>
         <TextInput
           style={styles.textArea}
           placeholder="What happened?"
-          multiline={true}
+          multiline
           numberOfLines={4}
-          value={value}
-          onChangeText={setValue}
+          value={description}
+          onChangeText={setDescription}
         />
       </View>
       <StyledButton
@@ -60,18 +97,21 @@ export default function crimeDetails() {
         />
       )}
       <View style={styles.checkboxContainer}>
-        <Text style={styles.checkboxLabel}>Solved</Text>
-        <Checkbox
-          status={checked ? "checked" : "unchecked"}
-          onPress={toggleCheckbox}
-          color="purple"
-          uncheckedColor="#999"
-        />
+        <View style={styles.checkboxBorder}>
+          <Checkbox
+            status={checked ? "checked" : "unchecked"}
+            onPress={() => setChecked(!checked)}
+            color="purple"
+            uncheckedColor="#999"
+          />
+        </View>
+        <Text style={styles.checkboxLabel}>Solved?</Text>
       </View>
       <StyledButton title={"Save"} onPress={saveCrime} />
     </View>
   );
 }
+
 const styles = StyleSheet.create({
   detailsDiv: {
     paddingLeft: 26,
@@ -115,5 +155,13 @@ const styles = StyleSheet.create({
   checkboxLabel: {
     fontSize: 18,
     marginRight: 8,
+    marginLeft: 8,
+  },
+  checkboxBorder: {
+    borderWidth: 1,
+    borderColor: "#999",
+    borderRadius: 4,
+    padding: 2,
+    margin: 2,
   },
 });

@@ -25,3 +25,15 @@ export const removeData = async (key) => {
     console.error("Failed to remove data", e);
   }
 };
+
+export const loadItemById = async (key, id) => {
+  try {
+    const data = await loadData(key);
+    if (Array.isArray(data)) {
+      return data.find((item) => item.id === id) || null;
+    }
+  } catch (e) {
+    console.error(`Failed to load item by id (${id}) from ${key}`, e);
+  }
+  return null;
+};

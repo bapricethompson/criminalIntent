@@ -12,10 +12,7 @@ import * as ImagePicker from "expo-image-picker";
 import { MaterialIcons } from "@expo/vector-icons";
 import IconButton from "./IconButton";
 
-export default function ImagePickerView() {
-  const [image, setImage] = useState(null);
-  const [text, setText] = useState("");
-
+export default function ImagePickerView({ image, setImage, title, setTitle }) {
   useEffect(() => {
     (async () => {
       if (Platform.OS !== "web") {
@@ -29,7 +26,7 @@ export default function ImagePickerView() {
   }, []);
 
   const pickImage = async () => {
-    let result = await ImagePicker.launchImageLibraryAsync({
+    const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
       aspect: [4, 3],
@@ -52,12 +49,12 @@ export default function ImagePickerView() {
         <IconButton onPress={pickImage} />
       </View>
       <View style={styles.textDiv}>
-        <Text style={styles.titleText}>Title</Text>
+        <Text style={styles.titleText}>{title}</Text>
         <TextInput
           style={styles.input}
           placeholder="Title"
-          value={text}
-          onChangeText={setText}
+          value={title}
+          onChangeText={setTitle}
         />
       </View>
     </View>

@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { View, Text, FlatList, StyleSheet, Pressable } from "react-native";
+import { useFocusEffect } from "@react-navigation/native";
 import ListItem from "../../components/ListItem";
 import crimes from "../../data/crimes";
 import { Link } from "expo-router";
@@ -86,18 +87,20 @@ const defaultCrimes = [
 export default function HomeScreen() {
   const [crimes, setCrimes] = useState([]);
 
-  useEffect(() => {
-    async function loadCrimes() {
-      let storedCrimes = await loadData("crimes");
-      if (!storedCrimes) {
-        // No data saved yet — save defaults
-        await saveData("crimes", defaultCrimes);
-        storedCrimes = defaultCrimes;
-      }
-      setCrimes(storedCrimes);
-    }
-    loadCrimes();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      const loadCrimes = async () => {
+        let storedCrimes = await loadData("crimes");
+        if (!storedCrimes) {
+          await saveData("crimes", defaultCrimes);
+          storedCrimes = defaultCrimes;
+        }
+        setCrimes(storedCrimes);
+      };
+
+      loadCrimes();
+    }, [])
+  );
 
   return (
     <View style={styles.container}>
