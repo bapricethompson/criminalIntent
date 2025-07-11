@@ -1,22 +1,27 @@
-import React, { useState, useEffect } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  TextInput,
-  Pressable,
-  Platform,
-} from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { useLocalSearchParams } from "expo-router";
-import ImagePickerView from "../components/ImagePicker";
-import StyledButton from "../components/GeneralButton";
+import React, { useEffect, useState } from "react";
+import {
+  Alert,
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableWithoutFeedback,
+  View,
+} from "react-native";
 import { Checkbox } from "react-native-paper";
 import uuid from "react-native-uuid";
-import { loadData, saveData, loadItemById } from "../hooks/useStorage";
-import { useRouter } from "expo-router";
+import StyledButton from "../components/GeneralButton";
+import ImagePickerView from "../components/ImagePicker";
+import { loadData, loadItemById, saveData } from "../hooks/useStorage";
+
+import { useTheme } from "../contexts/ThemeContext";
 
 export default function CrimeDetails() {
+  const { themeStyles, themeColor } = useTheme();
   const params = useLocalSearchParams();
   const crimeId = params.crimeId;
   const [title, setTitle] = useState("");
@@ -25,24 +30,45 @@ export default function CrimeDetails() {
   const [date, setDate] = useState(new Date());
   const [showPicker, setShowPicker] = useState(false);
   const [checked, setChecked] = useState(false);
-  const router = useRouter();
 
   const saveCrime = async () => {
-    const newCrime = {
-      id: uuid.v4(),
-      title,
-      date: date.toISOString(), // store as ISO string
-      description,
-      solved: checked,
-      image: imageUri || null,
-    };
-    console.log(newCrime);
     const existingCrimes = (await loadData("crimes")) || [];
-    console.log(existingCrimes);
-    const updatedCrimes = [...existingCrimes, newCrime];
-    console.log(updatedCrimes);
-    await saveData("crimes", updatedCrimes);
-    router.replace("/"); // or router.back() if you're pushing from index
+
+    let newCrime;
+
+    if (crimeId) {
+      newCrime = {
+        id: crimeId,
+        title,
+        date: date.toISOString(),
+        description,
+        solved: checked,
+        image: imageUri || null,
+      };
+
+      const index = existingCrimes.findIndex((c) => c.id === crimeId);
+
+      if (index !== -1) {
+        existingCrimes[index] = newCrime;
+      } else {
+        existingCrimes.push(newCrime);
+      }
+    } else {
+      newCrime = {
+        id: uuid.v4(),
+        title,
+        date: date.toISOString(),
+        description,
+        solved: checked,
+        image: imageUri || null,
+      };
+
+      existingCrimes.push(newCrime);
+    }
+
+    await saveData("crimes", existingCrimes);
+
+    Alert.alert("Success", "Crime saved successfully.");
   };
 
   useEffect(() => {
@@ -58,7 +84,7 @@ export default function CrimeDetails() {
     };
 
     loadCrime();
-  }, [crimeId]);
+  }, [crimeId, themeColor]);
 
   const onChange = (event, selectedDate) => {
     setShowPicker(false);
@@ -66,49 +92,74 @@ export default function CrimeDetails() {
   };
 
   return (
-    <View>
-      <ImagePickerView
-        image={imageUri}
-        setImage={setImageUri}
-        title={title}
-        setTitle={setTitle}
-      />
-      <View style={styles.detailsDiv}>
-        <Text style={styles.detailsTitle}>Details</Text>
-        <TextInput
-          style={styles.textArea}
-          placeholder="What happened?"
-          multiline
-          numberOfLines={4}
-          value={description}
-          onChangeText={setDescription}
-        />
-      </View>
-      <StyledButton
-        title={`Pick a date: ${date.toLocaleDateString()}`}
-        onPress={() => setShowPicker(true)}
-      />
-      {showPicker && (
-        <DateTimePicker
-          value={date}
-          mode="date"
-          display={Platform.OS === "ios" ? "spinner" : "default"}
-          onChange={onChange}
-        />
-      )}
-      <View style={styles.checkboxContainer}>
-        <View style={styles.checkboxBorder}>
-          <Checkbox
-            status={checked ? "checked" : "unchecked"}
-            onPress={() => setChecked(!checked)}
-            color="purple"
-            uncheckedColor="#999"
+    <KeyboardAvoidingView
+      style={{ flex: 1, backgroundColor: themeStyles.backgroundColor }}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
+    >
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <View style={{ flex: 1 }}>
+          <ImagePickerView
+            image={imageUri}
+            setImage={setImageUri}
+            title={title}
+            setTitle={setTitle}
+          />
+          <View style={styles.detailsDiv}>
+            <Text
+              style={[styles.detailsTitle, { color: themeStyles.textColor }]}
+            >
+              Details
+            </Text>
+            <TextInput
+              style={[styles.textArea, { color: themeStyles.textColor }]}
+              placeholder="What happened?"
+              multiline
+              numberOfLines={4}
+              value={description}
+              onChangeText={setDescription}
+              returnKeyType="done"
+              blurOnSubmit={true}
+              onSubmitEditing={Keyboard.dismiss}
+            />
+          </View>
+          <StyledButton
+            title={`Pick a date: ${date.toLocaleDateString()}`}
+            onPress={() => setShowPicker(true)}
+            color={themeStyles.secondaryColor}
+            textColor={themeStyles.textColor}
+          />
+          {showPicker && (
+            <DateTimePicker
+              value={date}
+              mode="date"
+              display={Platform.OS === "ios" ? "spinner" : "default"}
+              onChange={onChange}
+            />
+          )}
+          <View style={styles.checkboxContainer}>
+            <View style={styles.checkboxBorder}>
+              <Checkbox
+                status={checked ? "checked" : "unchecked"}
+                onPress={() => setChecked(!checked)}
+                color={themeStyles.textColor}
+                uncheckedColor="#999"
+              />
+            </View>
+            <Text
+              style={[styles.checkboxLabel, { color: themeStyles.textColor }]}
+            >
+              Solved?
+            </Text>
+          </View>
+          <StyledButton
+            title={"Save"}
+            color={themeStyles.secondaryColor}
+            textColor={themeStyles.textColor}
+            onPress={saveCrime}
           />
         </View>
-        <Text style={styles.checkboxLabel}>Solved?</Text>
-      </View>
-      <StyledButton title={"Save"} onPress={saveCrime} />
-    </View>
+      </TouchableWithoutFeedback>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -125,7 +176,7 @@ const styles = StyleSheet.create({
     borderColor: "#999",
     borderWidth: 1,
     height: 100,
-    textAlignVertical: "top", // ensures text starts at the top
+    textAlignVertical: "top",
     paddingHorizontal: 10,
     marginVertical: 12,
     paddingVertical: 10,

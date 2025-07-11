@@ -1,91 +1,114 @@
 import {
-  DarkTheme,
-  DefaultTheme,
-  ThemeProvider,
-} from "@react-navigation/native";
-import { Text, View, Pressable } from "react-native";
-import { Stack } from "expo-router";
-import { StatusBar } from "expo-status-bar";
-import { useRouter } from "expo-router";
-import "react-native-reanimated";
-import { MaterialIcons } from "@expo/vector-icons";
-import {
   Roboto_400Regular,
   Roboto_700Bold,
   useFonts,
 } from "@expo-google-fonts/roboto";
-
-import { useColorScheme } from "@/hooks/useColorScheme";
+import { MaterialIcons } from "@expo/vector-icons";
+import { Stack, useRouter } from "expo-router";
+import { StatusBar } from "expo-status-bar";
+import { Pressable, Text, View } from "react-native";
+import "react-native-reanimated";
+import {
+  ThemeProvider as CustomThemeProvider,
+  useTheme,
+} from "../contexts/ThemeContext";
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
-  const router = useRouter();
   const [loaded] = useFonts({
     Roboto_400Regular,
     Roboto_700Bold,
   });
 
   if (!loaded) {
-    // Async font loading only occurs in development.
     return null;
   }
 
   return (
-    <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
-      <Stack
-        screenOptions={({ route }) => {
-          // Screens where you want to hide the Add icon
-          const hideAddIconScreens = ["addCrime", "someOtherScreen"];
+    <CustomThemeProvider>
+      <AppNavigator />
+      <StatusBar style="light" />
+    </CustomThemeProvider>
+  );
+}
 
-          const showAddIcon = !hideAddIconScreens.includes(route.name);
+function AppNavigator() {
+  const router = useRouter();
+  const { themeStyles } = useTheme(); // Now safe to use here
 
-          return {
-            headerShown: true,
-            headerTitle: () => (
-              <View
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  width: "100%",
-                  paddingRight: 12,
-                  paddingLeft: 12,
-                }}
-              >
-                <Text
-                  style={{
-                    color: "white",
-                    fontSize: 22,
-                    fontWeight: "bold",
-                    fontFamily: "Roboto_700Bold",
-                  }}
-                >
-                  Criminal Intent
-                </Text>
+  return (
+    <Stack
+      screenOptions={({ route }) => ({
+        headerShown: true,
+        headerTitle: () => (
+          <HeaderTitle routeName={route.name} router={router} />
+        ),
+        headerStyle: {
+          backgroundColor: themeStyles.backgroundColor,
+        },
+        headerTintColor: themeStyles.textColor,
+      })}
+    >
+      <Stack.Screen name="index" />
+      <Stack.Screen name="+not-found" />
+      <Stack.Screen name="crimeDetail" />
+      <Stack.Screen name="settings" />
+    </Stack>
+  );
+}
 
-                {showAddIcon && (
-                  <Pressable
-                    onPress={() => router.push("/crimeDetail")}
-                    hitSlop={10}
-                    style={{ marginRight: 8 }}
-                  >
-                    <MaterialIcons name="add" size={28} color="white" />
-                  </Pressable>
-                )}
-              </View>
-            ),
-            headerStyle: {
-              backgroundColor: "purple",
-            },
-            headerTintColor: "white",
-          };
+function HeaderTitle({ routeName, router }) {
+  const { themeStyles } = useTheme();
+
+  const showAddIcon = routeName === "index";
+  const showSettingsIcon = routeName !== "settings";
+
+  return (
+    <View
+      style={{
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-between",
+        width: "100%",
+        paddingRight: 12,
+        paddingLeft: 12,
+        backgroundColor: themeStyles.backgroundColor,
+      }}
+    >
+      <Text
+        style={{
+          color: themeStyles.textColor,
+          fontSize: 22,
+          fontWeight: "bold",
+          fontFamily: "Roboto_700Bold",
         }}
       >
-        <Stack.Screen name="(tabs)" options={{ headerShown: true }} />
-        <Stack.Screen name="+not-found" />
-        <Stack.Screen name="crimeDetail" />
-      </Stack>
-      <StatusBar style="light" />
-    </ThemeProvider>
+        Criminal Intent
+      </Text>
+
+      <View style={{ flexDirection: "row", gap: 16 }}>
+        {showAddIcon && (
+          <Pressable
+            onPress={() => router.push("/crimeDetail")}
+            hitSlop={10}
+            style={{ marginRight: 8 }}
+          >
+            <MaterialIcons name="add" size={28} color={themeStyles.textColor} />
+          </Pressable>
+        )}
+        {showSettingsIcon && (
+          <Pressable
+            onPress={() => router.push("/settings")}
+            hitSlop={10}
+            style={{ marginRight: 4 }}
+          >
+            <MaterialIcons
+              name="settings"
+              size={28}
+              color={themeStyles.textColor}
+            />
+          </Pressable>
+        )}
+      </View>
+    </View>
   );
 }

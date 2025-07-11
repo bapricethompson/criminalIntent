@@ -1,16 +1,25 @@
-// FruitCard.js
-import React from "react";
-import { View, Text, StyleSheet } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
+import React from "react";
+import { StyleSheet, Text, View } from "react-native";
 
-export default function ListItem({ title, date, solved }) {
+export default function ListItem({
+  title,
+  date,
+  solved,
+  textColor,
+  backgroundColor,
+}) {
   return (
-    <View style={styles.card}>
+    <View style={[styles.card, { backgroundColor }]}>
       <View style={styles.cardFlex}>
-        <Text style={styles.textBold}>{title}</Text>
-        {solved && <MaterialIcons name="local-police" size={28} />}
+        <Text style={[styles.textBold, { color: textColor }]}>{title}</Text>
+        {solved && (
+          <MaterialIcons name="local-police" size={28} color={textColor} />
+        )}
       </View>
-      <Text style={styles.text}>{new Date(date).toLocaleDateString()}</Text>
+      <Text style={[styles.text, { color: textColor }]}>
+        {new Date(date).toLocaleDateString()}
+      </Text>
     </View>
   );
 }
@@ -18,15 +27,13 @@ export default function ListItem({ title, date, solved }) {
 const styles = StyleSheet.create({
   card: {
     padding: 16,
-    backgroundColor: "#f2f2f2",
     borderRadius: 8,
     marginBottom: 10,
   },
   cardFlex: {
-    display: "flex", // optional, flex is default in RN
-    flexDirection: "row", // arrange children horizontally
-    justifyContent: "space-between", // space items evenly
-    alignItems: "center", // vertically center items
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
   textBold: {
     fontSize: 18,

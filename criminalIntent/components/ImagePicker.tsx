@@ -1,18 +1,18 @@
-import React, { useState, useEffect } from "react";
+import * as ImagePicker from "expo-image-picker";
+import React, { useEffect } from "react";
 import {
-  Button,
   Image,
-  TextInput,
-  View,
   Platform,
   StyleSheet,
   Text,
+  TextInput,
+  View,
 } from "react-native";
-import * as ImagePicker from "expo-image-picker";
-import { MaterialIcons } from "@expo/vector-icons";
+import { useTheme } from "../contexts/ThemeContext";
 import IconButton from "./IconButton";
 
 export default function ImagePickerView({ image, setImage, title, setTitle }) {
+  const { themeStyles, themeColor } = useTheme();
   useEffect(() => {
     (async () => {
       if (Platform.OS !== "web") {
@@ -49,9 +49,11 @@ export default function ImagePickerView({ image, setImage, title, setTitle }) {
         <IconButton onPress={pickImage} />
       </View>
       <View style={styles.textDiv}>
-        <Text style={styles.titleText}>{title ? title : "Title"}</Text>
+        <Text style={[styles.titleText, { color: themeStyles.textColor }]}>
+          {title ? title : "Title"}
+        </Text>
         <TextInput
-          style={styles.input}
+          style={[styles.input, { color: themeStyles.textColor }]}
           placeholder="Title"
           value={title}
           onChangeText={setTitle}
